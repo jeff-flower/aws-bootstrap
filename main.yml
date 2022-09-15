@@ -87,6 +87,14 @@ Resources:
 
           cat > /tmp/install_script.sh << EOF
             # START
+            echo "Setting up NodeJS Environment"
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+
+            # Dot source the files to ensure that variables are available within the current shell
+            . /home/ec2-user/.nvm/nvm.sh
+            . /home/ec2-user/.bashrc
+
+
             # Download latest code, unzip it into /home/ec2-user/app
             wget https://github.com/jeff-flower/aws-bootstrap/archive/main.zip
             unzip main.zip
@@ -95,18 +103,12 @@ Resources:
             # Create log directory
             mkdir -p /home/ec2-user/app/logs
 
+            # Run server
             cd app
 
-            # Install NVM, NPM, Node.JS
-            echo "Setting up NodeJS Environment"
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+            # install node using ./app/.nvmrc
+            nvm install 
 
-            # Dot source the files to ensure that variables are available within the current shell
-            . /home/ec2-user/.nvm/nvm.sh
-            . /home/ec2-user/.bashrc
-            nvm install
-
-            # Run server
             npm install
             npm start
           EOF
@@ -117,8 +119,8 @@ Resources:
           # Signal to CloudFormation that the instance is ready
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --region ${AWS::Region} --resource Instance
       Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
+      - Key: Name
+        Value: !Ref AWS::StackName
 
 Outputs:
   InstanceDNS:
